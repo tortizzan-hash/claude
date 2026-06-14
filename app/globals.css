@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #0c0e12;
+  color: #e8e6e1;
+}
+
+.label-mono {
+  @apply font-mono text-xs tracking-widest uppercase text-gold;
+}
