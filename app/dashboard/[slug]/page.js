@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { DASHBOARD_DISCLAIMER } from '../../../lib/disclaimers';
-const { LQS_NAME, LQS_DESCRIPTION } = require('../../../lib/lqs');
+const { LQS_NAME, LQS_DESCRIPTION, LQS_NONLINEAR_NOTE } = require('../../../lib/lqs');
 
 const BAND_STYLES = {
   green: 'bg-band-green/15 text-band-green border-band-green/40',
@@ -71,7 +71,7 @@ export default function Dashboard({ params }) {
         <div className="text-right text-sm text-gray-400">
           <div>{leads.length} leads</div>
           <div className="text-band-green">
-            {leads.filter((l) => l.band === 'high').length} high-signal
+            {leads.filter((l) => l.band === 'priority').length} priority
           </div>
           <div className="flex gap-3 justify-end mt-1">
             <a href={`/settings/${slug}`} className="text-xs text-gray-500 hover:text-gold">Settings</a>
@@ -153,7 +153,7 @@ function ProofBar({ stats }) {
         <Stat label="Leads" value={summary.total} />
         <Stat label="Converted" value={`${summary.converted} (${summary.conversionRate}%)`} />
         <Stat label="Signed" value={summary.signed} />
-        <Stat label="High-band conv." value={`${perBand.high.conversionRate}%`} />
+        <Stat label="Priority conv." value={`${perBand.priority.conversionRate}%`} />
         <Stat label="Low-band conv." value={`${perBand.low.conversionRate}%`} />
         <Stat label="LQS lift (high vs low)" value={liftLabel} highlight />
       </div>
@@ -286,7 +286,10 @@ function LeadDetail({ lead, onDisposition, onNoteAdded, slug }) {
 function ScorePill({ lead, big }) {
   const display = lead.lqs == null ? '—' : lead.lqs;
   return (
-    <span className={`font-mono font-bold ${big ? 'text-3xl' : 'text-xl'} text-gold`}>
+    <span
+      className={`font-mono font-bold ${big ? 'text-3xl' : 'text-xl'} text-gold`}
+      title={LQS_NONLINEAR_NOTE}
+    >
       {display}
       <span className="text-xs text-gray-500"> LQS</span>
     </span>
