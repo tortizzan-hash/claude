@@ -17,6 +17,7 @@ const { scoreInquiry } = require('../../../lib/aiScorer');
 const { scoreLead } = require('../../../lib/lqs');
 const { maybeAlert } = require('../../../lib/alerts');
 const { syncToCrm } = require('../../../lib/crm');
+const { sendHighSignalAlert } = require('../../../lib/email');
 
 // CORS so the marketing site on another origin can POST here.
 const CORS = {
@@ -86,7 +87,7 @@ export async function POST(request) {
 
   // Fire-and-forget: instant alert for high-signal leads + CRM sync. Neither
   // should block or fail the intake response, so we don't await their outcome.
-  Promise.allSettled([maybeAlert(firm, lead), syncToCrm(firm, lead)]);
+  Promise.allSettled([maybeAlert(firm, lead), syncToCrm(firm, lead), sendHighSignalAlert(firm, lead)]);
 
   return NextResponse.json({ ok: true, lead }, { headers: CORS });
 }
