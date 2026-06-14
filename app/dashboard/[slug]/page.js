@@ -12,14 +12,31 @@ const BAND_STYLES = {
 export default function Dashboard({ params }) {
   const { slug } = use(params);
   const [leads, setLeads] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
 
   async function load() {
-    const res = await fetch(`/api/leads/${slug}`);
-    const data = await res.json();
-    if (data.ok) setLeads(data.leads);
+    const [leadsRes, statsRes] = await Promise.all([
+      fetch(`/api/leads/${slug}`).then((r) => r.json()),
+      fetch(`/api/stats/${slug}`).then((r) => r.json()),
+    ]);
+    if (leadsRes.ok) setLeads(leadsRes.leads);
+    if (statsRes.ok) setStats(statsRes);
     setLoading(false);
+  }
+
+  async function setDisposition(lead, disposition) {
+    const res = await fetch(`/api/leads/${slug}/${lead.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ disposition }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      setSelected(data.lead);
+      load();
+    }
   }
 
   useEffect(() => {
@@ -45,6 +62,8 @@ export default function Dashboard({ params }) {
         </div>
       </header>
 
+      {stats && stats.summary.total > 0 && <ProofBar stats={stats} />}
+
       {loading ? (
         <p className="text-gray-500">Loading leads…</p>
       ) : sorted.length === 0 ? (
@@ -57,7 +76,7 @@ export default function Dashboard({ params }) {
             ))}
           </div>
           <div className="lg:col-span-1">
-            {selected ? <LeadDetail lead={selected} /> : (
+            {selected ? <LeadDetail lead={selected} onDisposition={setDisposition} /> : (
               <div className="rounded-lg border border-panel2 bg-panel p-6 text-gray-500 text-sm">
                 Select a lead to see the full LQS breakdown.
               </div>
@@ -94,7 +113,46 @@ function LeadRow({ lead, onClick, active }) {
   );
 }
 
-function LeadDetail({ lead }) {
+const DISPOSITION_OPTIONS = [
+  ['new', 'New'],
+  ['contacted', 'Contacted'],
+  ['booked', 'Booked'],
+  ['signed', 'Signed'],
+  ['dead', 'Dead'],
+];
+
+function ProofBar({ stats }) {
+  const { summary, perBand } = stats;
+  const liftLabel =
+    summary.lift === null ? '—' : summary.lift === Infinity ? '∞' : `${summary.lift}×`;
+  return (
+    <div className="mb-6 rounded-lg border border-gold/30 bg-gold/5 p-4">
+      <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
+        <Stat label="Leads" value={summary.total} />
+        <Stat label="Converted" value={`${summary.converted} (${summary.conversionRate}%)`} />
+        <Stat label="Signed" value={summary.signed} />
+        <Stat label="High-band conv." value={`${perBand.high.conversionRate}%`} />
+        <Stat label="Low-band conv." value={`${perBand.low.conversionRate}%`} />
+        <Stat label="LQS lift (high vs low)" value={liftLabel} highlight />
+      </div>
+      <p className="mt-2 text-xs text-gray-500">
+        Proof engine — conversion by LQS band, updated as leads are worked. This is the
+        ROI data for audits and renewals.
+      </p>
+    </div>
+  );
+}
+
+function Stat({ label, value, highlight }) {
+  return (
+    <div>
+      <div className={`font-mono text-lg ${highlight ? 'text-gold' : 'text-gray-100'}`}>{value}</div>
+      <div className="text-xs text-gray-500 uppercase tracking-wide">{label}</div>
+    </div>
+  );
+}
+
+function LeadDetail({ lead, onDisposition }) {
   const subs = [
     ['ISS', 'Inquiry Signal', lead.subscores.iss],
     ['CFS', 'Case Fit', lead.subscores.cfs],
@@ -130,6 +188,25 @@ function LeadDetail({ lead }) {
       <div className="mt-4 rounded-md border border-gold/30 bg-gold/5 p-3">
         <p className="label-mono mb-1">Recommendation</p>
         <p className="text-sm text-gray-200">{lead.action}</p>
+      </div>
+
+      <div className="mt-4">
+        <p className="label-mono mb-2">Outcome</p>
+        <div className="flex flex-wrap gap-1.5">
+          {DISPOSITION_OPTIONS.map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => onDisposition?.(lead, value)}
+              className={`rounded border px-2.5 py-1 text-xs transition ${
+                lead.disposition === value
+                  ? 'border-gold bg-gold text-ink font-semibold'
+                  : 'border-panel2 text-gray-400 hover:border-gold/50'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       {lead.contact && (
         <div className="mt-4 text-sm text-gray-400 space-y-1">

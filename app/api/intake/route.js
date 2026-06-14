@@ -15,6 +15,8 @@ import { NextResponse } from 'next/server';
 const { getFirmBySlug, insertLead } = require('../../../lib/store');
 const { scoreInquiry } = require('../../../lib/aiScorer');
 const { scoreLead } = require('../../../lib/lqs');
+const { maybeAlert } = require('../../../lib/alerts');
+const { syncToCrm } = require('../../../lib/crm');
 
 // CORS so the marketing site on another origin can POST here.
 const CORS = {
@@ -78,8 +80,13 @@ export async function POST(request) {
     practiceArea: inquiry.practiceArea,
     location: inquiry.location,
     message,
+    disposition: 'new', // proof-engine starting state
     ...scored,
   });
+
+  // Fire-and-forget: instant alert for high-signal leads + CRM sync. Neither
+  // should block or fail the intake response, so we don't await their outcome.
+  Promise.allSettled([maybeAlert(firm, lead), syncToCrm(firm, lead)]);
 
   return NextResponse.json({ ok: true, lead }, { headers: CORS });
 }

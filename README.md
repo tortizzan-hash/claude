@@ -46,7 +46,20 @@ The marketing site connects through standard seams — no shared sandbox needed:
   ```
   CORS is open on this endpoint so the site can post cross-origin.
 
+## Proof engine, alerts & CRM sync (Milestone 2)
+
+- **Outcome tracking** — every lead carries a disposition (`new → contacted → booked →
+  signed / dead`), set from the dashboard. `GET /api/stats/[slug]` computes conversion
+  rates overall and **by LQS band**, plus the high-vs-low "lift" — the ROI proof buyers
+  ask for. Builds itself passively as a firm works leads. See `lib/proof.js`.
+- **Instant alerts** — a high-signal (or override-flagged) lead fires a webhook the moment
+  it lands, so the firm can hit the ~5-minute response window. Configure per firm via
+  `firm.alertWebhook` or globally via `ALERT_WEBHOOK_URL`. See `lib/alerts.js`.
+- **CRM sync** — scored leads forward to Clio / Lawmatics / a generic webhook via
+  `firm.crm = { provider, webhook, apiKey }`. See `lib/crm.js`. Alerts and CRM sync are
+  fire-and-forget; they never block or fail the intake response.
+
 ## Status
 
-Milestone 1 — scoring engine + intake → score → store + dashboard. **Next:** real auth
-for Client Login, multi-firm onboarding, and lead actions (book/call/archive).
+Milestone 2 complete. **Next:** real auth for Client Login, multi-firm onboarding, and
+provider-specific CRM adapters (Clio/Lawmatics OAuth).
