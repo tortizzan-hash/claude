@@ -1,8 +1,16 @@
-# Vector Mode Legal — Intake Portal
+# The VML Intake Module
 
-The standalone app behind the **Client Login** on vectormodelegal.com. Attorneys log
-in to see every inquiry scored, ranked, and routed in real time using the canonical
-**LQS (Legal Qualification Score)** engine.
+An AI-assisted intake scoring and lead-response dashboard for firms whose Vector Mode
+OS Audit identifies intake, lead response, and follow-up as the first workflow to fix.
+
+This is **Module 1** inside the broader Vector Mode Legal implementation studio — not
+the whole company. The audit is the relationship; this module is one possible install;
+**LQS** is the scoring engine inside it.
+
+Attorneys log in (the **Client Login** on vectormodelegal.com) to see every inquiry
+scored, ranked, and routed in real time using the **Legal Qualification Score (LQS)** —
+a signal-based score that ranks inquiries by urgency, case fit, buyer intent, firm
+readiness, and conversion resistance.
 
 ## What it does
 

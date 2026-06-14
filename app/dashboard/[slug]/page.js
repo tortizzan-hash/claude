@@ -2,6 +2,8 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { DASHBOARD_DISCLAIMER } from '../../../lib/disclaimers';
+const { LQS_NAME, LQS_DESCRIPTION } = require('../../../lib/lqs');
 
 const BAND_STYLES = {
   green: 'bg-band-green/15 text-band-green border-band-green/40',
@@ -55,14 +57,16 @@ export default function Dashboard({ params }) {
     return () => clearInterval(t);
   }, [slug]);
 
-  const sorted = [...leads].sort((a, b) => b.lqs - a.lqs);
+  // Unscored leads (lqs === null) sort to the very top — they need manual attention.
+  const sorted = [...leads].sort((a, b) => (b.lqs ?? 999) - (a.lqs ?? 999));
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       <header className="flex items-baseline justify-between border-b border-panel2 pb-4 mb-6">
         <div>
-          <p className="label-mono">Vector Mode Legal · Client Portal</p>
+          <p className="label-mono">Vector Mode Legal · Intake Module</p>
           <h1 className="font-serif text-3xl mt-1">Lead Intelligence</h1>
+          <p className="text-xs text-gray-500 mt-1 max-w-md">{LQS_DESCRIPTION}</p>
         </div>
         <div className="text-right text-sm text-gray-400">
           <div>{leads.length} leads</div>
@@ -98,6 +102,10 @@ export default function Dashboard({ params }) {
           </div>
         </div>
       )}
+
+      <p className="mt-10 border-t border-panel2 pt-4 text-xs text-gray-600 leading-relaxed">
+        {DASHBOARD_DISCLAIMER}
+      </p>
     </main>
   );
 }
@@ -193,7 +201,7 @@ function LeadDetail({ lead, onDisposition, onNoteAdded, slug }) {
   return (
     <div className="rounded-lg border border-panel2 bg-panel p-5 sticky top-6">
       <div className="flex items-center justify-between mb-4">
-        <p className="label-mono">LQS Breakdown</p>
+        <p className="label-mono" title={LQS_DESCRIPTION}>{LQS_NAME} (LQS)</p>
         <ScorePill lead={lead} big />
       </div>
       <div className="space-y-3">
@@ -201,12 +209,12 @@ function LeadDetail({ lead, onDisposition, onNoteAdded, slug }) {
           <div key={code}>
             <div className="flex justify-between text-sm mb-1">
               <span><span className="font-mono text-gold">{code}</span> <span className="text-gray-400">{name}</span></span>
-              <span className={code === 'CRS' ? 'text-band-red' : 'text-gray-200'}>{val}</span>
+              <span className={code === 'CRS' ? 'text-band-red' : 'text-gray-200'}>{val == null ? '—' : val}</span>
             </div>
             <div className="h-1.5 rounded bg-panel2 overflow-hidden">
               <div
                 className={code === 'CRS' ? 'h-full bg-band-red' : 'h-full bg-gold'}
-                style={{ width: `${val}%` }}
+                style={{ width: `${val == null ? 0 : val}%` }}
               />
             </div>
           </div>
@@ -276,9 +284,10 @@ function LeadDetail({ lead, onDisposition, onNoteAdded, slug }) {
 }
 
 function ScorePill({ lead, big }) {
+  const display = lead.lqs == null ? '—' : lead.lqs;
   return (
-    <span className={`font-mono font-bold ${big ? 'text-3xl' : 'text-xl'} text-${'gold'}`}>
-      {lead.lqs}
+    <span className={`font-mono font-bold ${big ? 'text-3xl' : 'text-xl'} text-gold`}>
+      {display}
       <span className="text-xs text-gray-500"> LQS</span>
     </span>
   );

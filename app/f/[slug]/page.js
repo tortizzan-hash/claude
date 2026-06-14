@@ -2,6 +2,7 @@
 
 import { useState, use } from 'react';
 import { PRACTICE_AREAS, fieldsFor } from '../../../lib/intakeFields';
+import { INTAKE_FORM_DISCLAIMER, THANK_YOU_DISCLAIMER } from '../../../lib/disclaimers';
 
 export default function IntakeForm({ params }) {
   const { slug } = use(params);
@@ -41,6 +42,7 @@ export default function IntakeForm({ params }) {
         <p className="label-mono mb-4">Vector Mode Legal</p>
         <h1 className="font-serif text-3xl mb-4">We've received your inquiry.</h1>
         <p className="text-gray-400">A member of the firm will follow up shortly. The more detail you provided, the faster we can help.</p>
+        <p className="mt-8 text-xs text-gray-600 border-t border-panel2 pt-4 leading-relaxed">{THANK_YOU_DISCLAIMER}</p>
       </main>
     );
   }
@@ -107,6 +109,8 @@ export default function IntakeForm({ params }) {
         </div>
 
         {status === 'error' && <p className="text-band-red text-sm">{error}</p>}
+
+        <p className="text-xs text-gray-600 leading-relaxed">{INTAKE_FORM_DISCLAIMER}</p>
 
         <button type="submit" disabled={status === 'submitting'}
           className="w-full rounded-md bg-gold py-3 font-semibold text-ink hover:bg-goldlight disabled:opacity-60">

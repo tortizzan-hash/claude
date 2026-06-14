@@ -15,7 +15,7 @@ import { NextResponse } from 'next/server';
 const { getFirmBySlug, insertLead } = require('../../../lib/store');
 const { scoreInquiry } = require('../../../lib/aiScorer');
 const { scoreLead } = require('../../../lib/lqs');
-const { maybeAlert } = require('../../../lib/alerts');
+const { maybeAlert, shouldAlert } = require('../../../lib/alerts');
 const { syncToCrm } = require('../../../lib/crm');
 const { sendHighSignalAlert } = require('../../../lib/email');
 const { sendPushToFirm, highSignalPushPayload } = require('../../../lib/push');
@@ -62,18 +62,30 @@ export async function POST(request) {
 
   // Score with Claude when a key is present; otherwise fall back to a transparent
   // heuristic so demos run with zero secrets. Either way LQS math is deterministic.
+  //
+  // CRITICAL: a scoring failure must NEVER lose the lead. If Claude is down,
+  // rate-limited, or returns bad output, we (a) fall back to the heuristic, and
+  // (b) if that also fails, store the lead UNSCORED and flagged for review. The
+  // prospect always gets a success response; the attorney is always notified.
   let scored;
+  let scoringStatus = 'scored';
   try {
     if (process.env.ANTHROPIC_API_KEY) {
       scored = await scoreInquiry({ firm, inquiry });
     } else {
       scored = heuristicScore(inquiry);
+      scoringStatus = 'heuristic';
     }
   } catch (err) {
-    return NextResponse.json(
-      { ok: false, error: `Scoring failed: ${err.message}` },
-      { status: 502, headers: CORS }
-    );
+    console.error('[intake] AI scoring failed, attempting heuristic fallback:', err.message);
+    try {
+      scored = heuristicScore(inquiry);
+      scoringStatus = 'heuristic_fallback';
+    } catch (err2) {
+      console.error('[intake] heuristic also failed, storing unscored:', err2.message);
+      scored = unscoredLead();
+      scoringStatus = 'unscored';
+    }
   }
 
   const lead = await insertLead({
@@ -83,20 +95,45 @@ export async function POST(request) {
     location: inquiry.location,
     message,
     disposition: 'new', // proof-engine starting state
+    scoringStatus,
     ...scored,
   });
 
-  // Fire-and-forget: instant alert for high-signal leads + CRM sync. Neither
-  // should block or fail the intake response, so we don't await their outcome.
-  const pushPayload = highSignalPushPayload(lead);
-  Promise.allSettled([
-    maybeAlert(firm, lead),
-    syncToCrm(firm, lead),
-    sendHighSignalAlert(firm, lead),
-    sendPushToFirm(firm, pushPayload),
-  ]);
+  // Fire-and-forget: none of these block or fail the intake response.
+  // CRM sync runs for every lead; alert/email/push only fire for leads that
+  // warrant immediate attention (high-signal OR flagged for review, which
+  // includes unscored leads) so attorneys aren't spammed by low-signal noise.
+  const notifyWorthy = shouldAlert(lead);
+  const jobs = [syncToCrm(firm, lead)];
+  if (notifyWorthy) {
+    jobs.push(
+      maybeAlert(firm, lead),
+      sendHighSignalAlert(firm, lead),
+      sendPushToFirm(firm, highSignalPushPayload(lead))
+    );
+  }
+  Promise.allSettled(jobs);
 
   return NextResponse.json({ ok: true, lead }, { headers: CORS });
+}
+
+/**
+ * Last-resort lead shape when BOTH AI and heuristic scoring fail. The lead is
+ * stored unscored, placed in the review band, and force-flagged so the attorney
+ * is notified and reviews it manually. The lead is never lost.
+ */
+function unscoredLead() {
+  return {
+    lqs: null,
+    band: 'review',
+    label: 'Needs Review (unscored)',
+    action: 'Scoring unavailable — review this lead manually',
+    color: 'orange',
+    subscores: { iss: null, cfs: null, bis: null, frs: null, crs: null },
+    overrides: ['Automatic scoring failed'],
+    forceReview: true,
+    reasoning: 'This lead could not be scored automatically and requires manual review.',
+  };
 }
 
 /**
