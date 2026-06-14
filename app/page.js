@@ -12,9 +12,11 @@ export default function Home() {
           <span className="text-gold font-semibold">→ Demo intake form</span>
           <p className="text-sm text-gray-500">Submit a test inquiry and watch it get scored.</p>
         </a>
-        <a href="/dashboard/demo" className="block rounded-lg border border-panel2 bg-panel p-4 hover:border-gold/50">
-          <span className="text-gold font-semibold">→ Demo dashboard</span>
-          <p className="text-sm text-gray-500">The attorney view: leads ranked by LQS.</p>
+        <a href="/login" className="block rounded-lg border border-panel2 bg-panel p-4 hover:border-gold/50">
+          <span className="text-gold font-semibold">→ Client Login</span>
+          <p className="text-sm text-gray-500">
+            The attorney dashboard: leads ranked by LQS. Demo: demo@vectormodelegal.com / demo1234
+          </p>
         </a>
       </div>
     </main>

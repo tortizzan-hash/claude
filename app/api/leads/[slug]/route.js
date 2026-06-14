@@ -3,11 +3,14 @@
  * (Auth is added in the next milestone; for now scoped by firm slug.)
  */
 import { NextResponse } from 'next/server';
+import { requireFirm } from '../../../../lib/serverAuth';
 
 const { listLeads } = require('../../../../lib/store');
 
 export async function GET(_request, { params }) {
   const { slug } = await params;
+  const auth = await requireFirm(slug);
+  if (auth.error) return NextResponse.json({ ok: false, error: auth.error }, { status: auth.status });
   try {
     const leads = await listLeads(slug);
     return NextResponse.json({ ok: true, leads });

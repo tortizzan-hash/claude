@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
+import { useRouter } from 'next/navigation';
 
 const BAND_STYLES = {
   green: 'bg-band-green/15 text-band-green border-band-green/40',
@@ -11,19 +12,28 @@ const BAND_STYLES = {
 
 export default function Dashboard({ params }) {
   const { slug } = use(params);
+  const router = useRouter();
   const [leads, setLeads] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
 
   async function load() {
-    const [leadsRes, statsRes] = await Promise.all([
-      fetch(`/api/leads/${slug}`).then((r) => r.json()),
-      fetch(`/api/stats/${slug}`).then((r) => r.json()),
-    ]);
-    if (leadsRes.ok) setLeads(leadsRes.leads);
-    if (statsRes.ok) setStats(statsRes);
+    const leadsRes = await fetch(`/api/leads/${slug}`);
+    if (leadsRes.status === 401 || leadsRes.status === 403) {
+      router.push('/login');
+      return;
+    }
+    const leadsData = await leadsRes.json();
+    const statsData = await fetch(`/api/stats/${slug}`).then((r) => r.json());
+    if (leadsData.ok) setLeads(leadsData.leads);
+    if (statsData.ok) setStats(statsData);
     setLoading(false);
+  }
+
+  async function logout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
   }
 
   async function setDisposition(lead, disposition) {
@@ -59,6 +69,9 @@ export default function Dashboard({ params }) {
           <div className="text-band-green">
             {leads.filter((l) => l.band === 'high').length} high-signal
           </div>
+          <button onClick={logout} className="mt-1 text-xs text-gray-500 hover:text-gold">
+            Sign out
+          </button>
         </div>
       </header>
 

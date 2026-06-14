@@ -3,12 +3,15 @@
  * Body: { disposition: "new"|"contacted"|"booked"|"signed"|"dead" }
  */
 import { NextResponse } from 'next/server';
+import { requireFirm } from '../../../../../lib/serverAuth';
 
 const { updateLeadDisposition } = require('../../../../../lib/store');
 const { DISPOSITIONS } = require('../../../../../lib/proof');
 
 export async function PATCH(request, { params }) {
   const { slug, id } = await params;
+  const auth = await requireFirm(slug);
+  if (auth.error) return NextResponse.json({ ok: false, error: auth.error }, { status: auth.status });
   let body;
   try {
     body = await request.json();
