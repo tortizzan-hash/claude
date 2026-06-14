@@ -69,9 +69,10 @@ export default function Dashboard({ params }) {
           <div className="text-band-green">
             {leads.filter((l) => l.band === 'high').length} high-signal
           </div>
-          <button onClick={logout} className="mt-1 text-xs text-gray-500 hover:text-gold">
-            Sign out
-          </button>
+          <div className="flex gap-3 justify-end mt-1">
+            <a href={`/settings/${slug}`} className="text-xs text-gray-500 hover:text-gold">Settings</a>
+            <button onClick={logout} className="text-xs text-gray-500 hover:text-gold">Sign out</button>
+          </div>
         </div>
       </header>
 
@@ -89,7 +90,7 @@ export default function Dashboard({ params }) {
             ))}
           </div>
           <div className="lg:col-span-1">
-            {selected ? <LeadDetail lead={selected} onDisposition={setDisposition} /> : (
+            {selected ? <LeadDetail lead={selected} onDisposition={setDisposition} onNoteAdded={(updated) => { setSelected(updated); load(); }} slug={slug} /> : (
               <div className="rounded-lg border border-panel2 bg-panel p-6 text-gray-500 text-sm">
                 Select a lead to see the full LQS breakdown.
               </div>
@@ -165,7 +166,23 @@ function Stat({ label, value, highlight }) {
   );
 }
 
-function LeadDetail({ lead, onDisposition }) {
+function LeadDetail({ lead, onDisposition, onNoteAdded, slug }) {
+  const [noteText, setNoteText] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+
+  async function addNote(e) {
+    e.preventDefault();
+    if (!noteText.trim()) return;
+    setSavingNote(true);
+    const res = await fetch(`/api/leads/${slug}/${lead.id}/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: noteText.trim() }),
+    });
+    const data = await res.json();
+    if (data.ok) { setNoteText(''); onNoteAdded?.(data.lead); }
+    setSavingNote(false);
+  }
   const subs = [
     ['ISS', 'Inquiry Signal', lead.subscores.iss],
     ['CFS', 'Case Fit', lead.subscores.cfs],
@@ -227,6 +244,33 @@ function LeadDetail({ lead, onDisposition }) {
           {lead.contact.email && <div>✉️ {lead.contact.email}</div>}
         </div>
       )}
+
+      {/* Notes / activity log */}
+      <div className="mt-4">
+        <p className="label-mono mb-2">Notes</p>
+        {lead.notes?.length > 0 && (
+          <div className="space-y-2 mb-3">
+            {lead.notes.map((n, i) => (
+              <div key={i} className="rounded border border-panel2 bg-ink px-3 py-2 text-sm text-gray-300">
+                <p>{n.text}</p>
+                <p className="text-xs text-gray-600 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        <form onSubmit={addNote} className="flex gap-2">
+          <input
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a note…"
+            className="flex-1 rounded border border-panel2 bg-ink px-3 py-1.5 text-sm text-gray-100 focus:border-gold outline-none"
+          />
+          <button type="submit" disabled={savingNote || !noteText.trim()}
+            className="rounded border border-gold/50 px-3 py-1.5 text-xs text-gold hover:bg-gold/10 disabled:opacity-40">
+            Add
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

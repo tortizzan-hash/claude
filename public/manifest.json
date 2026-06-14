@@ -1,0 +1,14 @@
+{
+  "name": "Vector Mode Legal",
+  "short_name": "VML Portal",
+  "description": "Qualified leads. Booked consultations. Signed clients.",
+  "start_url": "/login",
+  "display": "standalone",
+  "background_color": "#0c0e12",
+  "theme_color": "#c9a24b",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

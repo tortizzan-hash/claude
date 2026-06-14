@@ -9,8 +9,9 @@ create table if not exists firms (
   "practiceAreas" text[] default '{}',
   jurisdiction  text default '',
   "alertWebhook" text default null,
-  "notifyEmail"  text default null,    -- where high-signal alerts + digests go
-  crm           jsonb default null,    -- { provider, webhook, apiKey }
+  "notifyEmail"       text default null,
+  "pushSubscriptions" jsonb default '[]', -- browser push subscription objects
+  crm                 jsonb default null, -- { provider, webhook, apiKey }
   created_at    timestamptz default now()
 );
 
@@ -44,6 +45,7 @@ create table if not exists leads (
   overrides     text[] default '{}',
   "forceReview" boolean default false,
   reasoning     text default '',
+  notes         jsonb default '[]',   -- [{ text, createdAt }]
   -- Proof engine
   disposition   text default 'new',   -- new|contacted|booked|signed|dead
   "dispositionAt" timestamptz default null,
