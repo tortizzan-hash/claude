@@ -4,7 +4,6 @@ export const metadata = {
   title: 'Vector Mode Legal — Intake Portal',
   description: 'Qualified leads. Booked consultations. Signed clients.',
   manifest: '/manifest.json',
-  themeColor: '#c9a24b',
 };
 
 export default function RootLayout({ children }) {
