@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tytan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:           #050505;
+      --border:       #141414;
+      --border-dim:   #0d0d0d;
+      --gray-dark:    #333333;
+      --gray:         #666666;
+      --gray-mid:     #8a8a8a;
+      --white:        #f0f0f0;
+      --white-full:   #ffffff;
+      --red:          #8B2332;
+      --red-hover:    #a02a3c;
+      --serif:        'Playfair Display', Georgia, 'Times New Roman', serif;
+      --mono:         'IBM Plex Mono', 'Courier New', monospace;
+      --max:          660px;
+      --pad:          28px;
+    }
+
+    html {
+      background: var(--bg);
+      color: var(--gray);
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body { min-height: 100vh; }
+
+    /* ─── Layout ─────────────────────────────── */
+    .w {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+    }
+
+    /* ─── Nav ────────────────────────────────── */
+    .nav {
+      padding-top: 52px;
+    }
+
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .nav-brand,
+    .nav-link {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: color 0.18s;
+    }
+
+    .nav-brand {
+      font-family: var(--serif);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--gray);
+    }
+
+    .nav-brand:hover { color: var(--white); }
+
+    .nav-links { display: flex; gap: 36px; }
+
+    .nav-link {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+
+    .nav-link:hover { color: var(--white); }
+
+    /* ─── The single red accent ──────────────── */
+    .red-rule {
+      height: 1px;
+      background: var(--red);
+      margin-top: 40px;
+    }
+
+    /* ─── Home: Hero ─────────────────────────── */
+    .hero {
+      padding: 96px 0 88px;
+    }
+
+    .hero-name {
+      font-family: var(--serif);
+      font-size: clamp(76px, 15vw, 120px);
+      font-weight: 900;
+      color: var(--white-full);
+      letter-spacing: -0.03em;
+      line-height: 0.92;
+      margin-bottom: 30px;
+    }
+
+    .hero-tagline {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--gray);
+      letter-spacing: 0.04em;
+      line-height: 1.7;
+    }
+
+    /* ─── Home: Essay list ───────────────────── */
+    .essays-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gray-dark);
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .essay-list {
+      list-style: none;
+    }
+
+    .essay-item {
+      padding: 38px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .essay-item:hover .essay-title {
+      color: var(--white-full);
+    }
+
+    .essay-item:hover .essay-date {
+      color: var(--gray-mid);
+    }
+
+    .essay-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .essay-date {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--gray);
+      transition: color 0.18s;
+    }
+
+    .essay-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray-dark);
+      border: 1px solid #1d1d1d;
+      padding: 2px 8px;
+    }
+
+    .essay-title {
+      display: block;
+      font-family: var(--serif);
+      font-size: clamp(19px, 3.5vw, 25px);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.25;
+      margin-bottom: 12px;
+      transition: color 0.18s;
+    }
+
+    .essay-desc {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--gray);
+      line-height: 1.75;
+    }
+
+    /* ─── Email capture ──────────────────────── */
+    .email-block {
+      padding-top: 52px;
+      padding-bottom: 80px;
+      border-top: 1px solid var(--border);
+      margin-top: 56px;
+    }
+
+    .email-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--gray);
+      letter-spacing: 0.02em;
+      margin-bottom: 22px;
+    }
+
+    .email-row {
+      display: flex;
+      max-width: 400px;
+    }
+
+    .email-input {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--white);
+      background: #080808;
+      border: 1px solid #1c1c1c;
+      border-right: none;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+
+    .email-input::placeholder { color: var(--gray-dark); }
+    .email-input:focus { border-color: #2c2c2c; }
+
+    /* TODO: Wire .email-form action + this button's handler to your email service
+       (Beehiiv, ConvertKit, Mailchimp, etc.) before going live. */
+    .email-btn {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white-full);
+      background: var(--red);
+      border: 1px solid var(--red);
+      padding: 12px 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.18s;
+    }
+
+    .email-btn:hover { background: var(--red-hover); }
+    .email-btn:disabled { background: #222; border-color: #222; cursor: default; }
+
+    .email-note {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--gray-dark);
+      letter-spacing: 0.02em;
+      margin-top: 14px;
+    }
+
+    /* ─── Footer ─────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border-dim);
+      padding: 36px 0;
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-name {
+      font-family: var(--serif);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gray-dark);
+      letter-spacing: 0.06em;
+    }
+
+    .footer-year {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--gray-dark);
+      letter-spacing: 0.12em;
+    }
+
+    /* ─── Essay page ─────────────────────────── */
+    .essay-page {
+      padding: 72px 0 60px;
+    }
+
+    .back-btn {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--gray);
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      margin-bottom: 72px;
+      display: inline-block;
+      transition: color 0.18s;
+    }
+
+    .back-btn::before { content: '← '; }
+    .back-btn:hover { color: var(--white); }
+
+    .ep-date {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: var(--gray);
+      margin-bottom: 20px;
+    }
+
+    .ep-title {
+      font-family: var(--serif);
+      font-size: clamp(36px, 7.5vw, 64px);
+      font-weight: 900;
+      color: var(--white-full);
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+      margin-bottom: 22px;
+    }
+
+    .ep-lede {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--gray);
+      line-height: 1.75;
+      max-width: 480px;
+    }
+
+    .ep-rule {
+      height: 1px;
+      background: var(--border);
+      margin: 60px 0;
+    }
+
+    .ep-body {
+      font-family: var(--mono);
+      font-size: 13.5px;
+      font-weight: 300;
+      color: #868686;
+      line-height: 2.2;
+      max-width: 620px;
+    }
+
+    .ep-body p + p { margin-top: 34px; }
+
+    .ep-body em {
+      font-style: italic;
+      font-family: var(--serif);
+      color: #a0a0a0;
+    }
+
+    /* ─── About page ─────────────────────────── */
+    .about-page {
+      padding: 72px 0 60px;
+    }
+
+    .about-heading {
+      font-family: var(--serif);
+      font-size: clamp(52px, 11vw, 86px);
+      font-weight: 900;
+      color: var(--white-full);
+      letter-spacing: -0.03em;
+      line-height: 0.92;
+      margin-bottom: 60px;
+    }
+
+    .about-body {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--gray);
+      line-height: 2.05;
+      max-width: 520px;
+    }
+
+    .about-body p + p { margin-top: 28px; }
+
+    /* ─── Responsive ─────────────────────────── */
+    @media (max-width: 480px) {
+      :root { --pad: 20px; }
+
+      .nav { padding-top: 36px; }
+      .hero { padding: 64px 0 60px; }
+
+      .email-row { flex-direction: column; max-width: 100%; }
+      .email-input { border-right: 1px solid #1c1c1c; border-bottom: none; }
+      .email-btn { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script>
+  /* ─── Content — swap these with live essays ──────────────────────── */
+  const essays = [
+    {
+      id: 'the-education-essay',
+      title: 'The Education Essay',
+      date: 'June 2024',
+      status: null,
+      desc: 'What 2–4 capital letters next to your name really buy you. And what they can\'t.',
+      body: [
+        'The gate has a number. Two letters, maybe four. Appended to a name like a serial number stamped onto something that needed authenticating — as if the thing itself weren\'t enough.',
+        'We built a civilization on this. We gave the letters weight. We let them do the work that presence, argument, and track record used to do. And then we forgot we\'d done it — forgot that the letters were a proxy, not the thing.',
+        'I noticed this at twenty-three, in a room where everyone else had the letters and I didn\'t. I noticed it the way you notice a key is missing only when the door won\'t open. Not the door to the room — I was already in the room. The door to being <em>heard</em> in it.',
+        'There\'s a cost to that. There\'s a tax on every sentence when the room has already decided you\'re provisional. You say something true and watch people wait for the credentialed voice to confirm it before they let themselves believe it. You watch the confirmation land. You watch the room relax. And you file the data.',
+        'The credential isn\'t a lie. It does something real. It compresses a long argument about baseline competence into a symbol, which is useful when you don\'t have time for the argument. The problem is we forgot to limit it to that. We let it spread. We started using it to adjudicate things it was never designed to adjudicate — taste, moral authority, lived truth.',
+        'The question I\'m sitting with: what happens when you finally get the letters? Does the door open? Does the room relax? Or do you discover, as I suspect, that the tax doesn\'t disappear — it just changes form. That the credentialed person gets a different set of distortions. That the gate was never the real problem.',
+        'More on that in the next piece.',
+      ]
+    },
+    {
+      id: 'the-authority-trap',
+      title: 'The Authority Trap',
+      date: 'Forthcoming',
+      status: 'forthcoming',
+      desc: 'How success distorts the room as badly as credentials do — just in the other direction.',
+      body: []
+    },
+    {
+      id: 'the-meta-in-entrepreneurship',
+      title: 'The Meta in Entrepreneurship',
+      date: 'Early 2025',
+      status: null,
+      desc: 'What happens to the mind when it sees the circus from inside and can\'t find the exit.',
+      body: [
+        'At some point you stop asking whether the game is worth playing and start asking whether you\'re even playing it anymore — or whether you\'ve become part of the field itself. Furniture. A variable. A known quantity the system routes around without noticing.',
+        'This is the essay about that moment. About the specific dissociation of entrepreneurship: how you can be fully inside something and simultaneously become unable to locate yourself inside it. How success makes this worse, not better — because success without a self that wanted it is just momentum.',
+        '<em>This essay is being finished. Subscribe below to get it when it publishes.</em>',
+      ]
+    }
+  ];
+
+  /* ─── Router ─────────────────────────────────────────────────────── */
+  function path() {
+    return window.location.hash.replace('#', '') || '/';
+  }
+
+  function go(p) {
+    window.location.hash = p;
+  }
+
+  function render() {
+    const p = path();
+    const root = document.getElementById('root');
+
+    if (p === '/' || p === '') {
+      root.innerHTML = home();
+    } else if (p === '/about') {
+      root.innerHTML = about();
+    } else if (p.startsWith('/essay/')) {
+      const id = p.slice(8);
+      const e = essays.find(x => x.id === id);
+      root.innerHTML = e ? essay(e) : home();
+    } else {
+      root.innerHTML = home();
+    }
+
+    // Bind all nav actions
+    document.querySelectorAll('[data-go]').forEach(el => {
+      el.addEventListener('click', ev => {
+        ev.preventDefault();
+        go(el.dataset.go);
+      });
+    });
+
+    window.scrollTo(0, 0);
+  }
+
+  /* ─── Shared partials ────────────────────────────────────────────── */
+  function nav() {
+    return `
+      <nav class="nav">
+        <div class="w">
+          <div class="nav-row">
+            <button class="nav-brand" data-go="/">Tytan</button>
+            <div class="nav-links">
+              <button class="nav-link" data-go="/about">About</button>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div class="red-rule"></div>
+    `;
+  }
+
+  function emailCapture() {
+    return `
+      <div class="email-block">
+        <p class="email-label">Get new pieces in your inbox.</p>
+        <form class="email-row" onsubmit="handleSub(event)">
+          <input class="email-input" type="email" placeholder="your@email.com" autocomplete="email" required>
+          <button class="email-btn" type="submit">Subscribe</button>
+        </form>
+        <p class="email-note">No hype. No announcements. Just new pieces, when they exist.</p>
+      </div>
+    `;
+  }
+
+  function foot() {
+    return `
+      <footer>
+        <div class="w">
+          <div class="footer-row">
+            <span class="footer-name">Tytan</span>
+            <span class="footer-year">© ${new Date().getFullYear()}</span>
+          </div>
+        </div>
+      </footer>
+    `;
+  }
+
+  /* ─── Pages ──────────────────────────────────────────────────────── */
+  function home() {
+    return `
+      ${nav()}
+      <main>
+        <div class="w">
+          <section class="hero">
+            <h1 class="hero-name">Tytan.</h1>
+            <p class="hero-tagline">Moving people, not informing them.</p>
+          </section>
+
+          <div class="essays-label">Essays</div>
+          <ul class="essay-list">
+            ${essays.map(e => `
+              <li class="essay-item" data-go="/essay/${e.id}">
+                <div class="essay-meta">
+                  <span class="essay-date">${e.date}</span>
+                  ${e.status === 'forthcoming' ? '<span class="essay-badge">Forthcoming</span>' : ''}
+                </div>
+                <span class="essay-title">${e.title}</span>
+                <p class="essay-desc">${e.desc}</p>
+              </li>
+            `).join('')}
+          </ul>
+
+          ${emailCapture()}
+        </div>
+      </main>
+      ${foot()}
+    `;
+  }
+
+  function essay(e) {
+    const body = e.body.length
+      ? e.body.map(p => `<p>${p}</p>`).join('')
+      : '<p><em>Not yet published. Subscribe below.</em></p>';
+
+    return `
+      ${nav()}
+      <main>
+        <div class="w">
+          <div class="essay-page">
+            <button class="back-btn" data-go="/">All essays</button>
+            <header>
+              <div class="ep-date">${e.date}</div>
+              <h1 class="ep-title">${e.title}</h1>
+              <p class="ep-lede">${e.desc}</p>
+            </header>
+            <div class="ep-rule"></div>
+            <div class="ep-body">${body}</div>
+            ${emailCapture()}
+          </div>
+        </div>
+      </main>
+      ${foot()}
+    `;
+  }
+
+  function about() {
+    return `
+      ${nav()}
+      <main>
+        <div class="w">
+          <div class="about-page">
+            <button class="back-btn" data-go="/">All essays</button>
+            <h1 class="about-heading">About.</h1>
+            <div class="about-body">
+              <p>Tytan is an independent essayist writing long-form intellectual prose as a fine-art form. Not journalism. Not content. Not academic argument. Pieces that move you the way a song does, about real ideas in the real world.</p>
+              <p>The work is concerned with who gets to be believed — credentials, success, authority, and the systems we use to decide whose voice carries. A trilogy in progress. Each essay stands alone. Together they announce a worldview.</p>
+            </div>
+            ${emailCapture()}
+          </div>
+        </div>
+      </main>
+      ${foot()}
+    `;
+  }
+
+  /* ─── Email subscribe ────────────────────────────────────────────── */
+  function handleSub(ev) {
+    ev.preventDefault();
+    /* TODO: Replace with your email service API call.
+       Example (Beehiiv): fetch('https://api.beehiiv.com/v2/publications/YOUR_ID/subscriptions', {
+         method: 'POST', headers: { Authorization: 'Bearer YOUR_KEY', 'Content-Type': 'application/json' },
+         body: JSON.stringify({ email: ev.target.querySelector('input').value })
+       }) */
+    const btn   = ev.target.querySelector('.email-btn');
+    const input = ev.target.querySelector('.email-input');
+    btn.textContent = 'Done.';
+    btn.disabled    = true;
+    input.disabled  = true;
+  }
+
+  /* ─── Init ───────────────────────────────────────────────────────── */
+  window.addEventListener('hashchange', render);
+  render();
+</script>
+
+</body>
+</html>
